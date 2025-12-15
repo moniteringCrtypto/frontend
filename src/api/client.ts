@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5034/api';
+// 환경 변수에서 API URL 가져오기, 없으면 기본값 사용
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5034/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
