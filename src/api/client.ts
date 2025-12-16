@@ -46,12 +46,14 @@ export const apiClient = axios.create({
 // 요청 인터셉터: 실제 요청 URL 확인
 apiClient.interceptors.request.use(
   (config) => {
-    const fullUrl = config.baseURL + config.url;
     if (import.meta.env.PROD) {
+      const baseURL = config.baseURL || '';
+      const url = config.url || '';
+      const fullUrl = baseURL + url;
       console.log('📤 API Request:', {
         method: config.method?.toUpperCase(),
-        url: config.url,
-        baseURL: config.baseURL,
+        url: url,
+        baseURL: baseURL,
         fullURL: fullUrl,
         params: config.params,
       });
