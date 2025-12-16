@@ -1,6 +1,21 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://34.64.63.71:80'; // nginx가 포트 80에서 실행 중
+// 백엔드 URL 설정 및 검증
+let BACKEND_URL = process.env.BACKEND_URL || 'http://34.64.63.71:80';
+
+// URL 검증 및 수정 (오타 방지)
+if (BACKEND_URL.includes('ㅗttp')) {
+  BACKEND_URL = BACKEND_URL.replace('ㅗttp', 'http');
+}
+if (!BACKEND_URL.startsWith('http://') && !BACKEND_URL.startsWith('https://')) {
+  BACKEND_URL = 'http://' + BACKEND_URL;
+}
+// 포트 80으로 통일 (nginx 사용)
+if (BACKEND_URL.includes(':8080')) {
+  BACKEND_URL = BACKEND_URL.replace(':8080', ':80');
+}
+
+console.log('[Proxy] Backend URL:', BACKEND_URL);
 
 export default async function handler(
   req: VercelRequest,
@@ -56,6 +71,15 @@ export default async function handler(
   const queryString = new URLSearchParams(queryParams).toString();
   
   const backendUrl = `${BACKEND_URL}/api/${pathString}${queryString ? `?${queryString}` : ''}`;
+  
+  // URL 최종 검증
+  if (!backendUrl.startsWith('http://') && !backendUrl.startsWith('https://')) {
+    console.error('[Proxy] Invalid backend URL:', backendUrl);
+    return res.status(500).json({ 
+      error: 'Invalid backend URL configuration',
+      backendUrl 
+    });
+  }
   
   console.log(`[Proxy] ${req.method} ${req.url} -> ${backendUrl}`);
   
