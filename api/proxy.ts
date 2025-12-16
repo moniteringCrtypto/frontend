@@ -14,14 +14,26 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  // req.url에서 경로 추출: /api/proxy/market/... -> market/...
-  const url = req.url || '';
-  const pathMatch = url.match(/^\/api\/proxy\/(.+?)(?:\?|$)/);
-  const pathString = pathMatch ? pathMatch[1] : '';
+  // 경로 추출: rewrites에서 path 파라미터로 전달되거나 req.url에서 추출
+  let pathString = '';
   
-  // 쿼리 파라미터는 req.query에서 가져오기
+  // rewrites를 통해 전달된 경우
+  if (req.query.path) {
+    const pathParam = req.query.path;
+    pathString = Array.isArray(pathParam) ? pathParam.join('/') : pathParam;
+  } else {
+    // 직접 호출된 경우 req.url에서 추출
+    const url = req.url || '';
+    const pathMatch = url.match(/^\/api\/proxy\/(.+?)(?:\?|$)/);
+    pathString = pathMatch ? pathMatch[1] : '';
+  }
+  
+  // 쿼리 파라미터는 req.query에서 가져오기 (path 제외)
   const queryParams: Record<string, string> = {};
   Object.keys(req.query).forEach(key => {
+    // path는 제외 (rewrites에서 전달되는 경로 파라미터)
+    if (key === 'path') return;
+    
     const value = req.query[key];
     if (typeof value === 'string') {
       queryParams[key] = value;
