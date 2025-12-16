@@ -5,11 +5,6 @@ import axios from 'axios';
 // 로컬 개발: http://localhost:5034/api
 // 배포 환경: 실제 백엔드 API URL (예: https://your-backend-api.com/api)
 const getApiBaseUrl = () => {
-  // 환경 변수가 설정되어 있으면 사용
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-  
   // 개발 환경 체크: localhost에서 실행 중이면 개발 환경
   const isDevelopment = 
     typeof window !== 'undefined' && 
@@ -17,15 +12,32 @@ const getApiBaseUrl = () => {
      window.location.hostname === '127.0.0.1' ||
      window.location.hostname === '');
   
-  // 개발 환경이 아니면 프로덕션 (Vercel 배포 환경)
-  if (!isDevelopment) {
-    // Vercel Serverless Function을 통한 프록시
-    // Mixed Content 문제 해결
+  // 개발 환경이면 localhost 사용
+  if (isDevelopment) {
+    return 'http://localhost:5034/api';
+  }
+  
+  // 프로덕션 환경 (Vercel 배포)
+  // 환경 변수가 설정되어 있으면 확인
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  
+  // 환경 변수가 HTTP URL이면 Mixed Content 문제 발생
+  // Vercel Serverless Function 프록시 사용
+  if (envUrl && envUrl.startsWith('http://')) {
+    console.warn(
+      '⚠️ VITE_API_BASE_URL이 HTTP URL입니다. Mixed Content 문제를 피하기 위해 프록시를 사용합니다.\n' +
+      'Vercel 환경 변수를 "/api/proxy"로 변경하거나 삭제하는 것을 권장합니다.'
+    );
     return '/api/proxy';
   }
   
-  // 개발 환경에서는 localhost 사용
-  return 'http://localhost:5034/api';
+  // 환경 변수가 상대 경로(/api/proxy)이면 그대로 사용
+  if (envUrl && envUrl.startsWith('/')) {
+    return envUrl;
+  }
+  
+  // 환경 변수가 없거나 HTTPS URL이면 프록시 사용
+  return '/api/proxy';
 };
 
 const API_BASE_URL = getApiBaseUrl();
