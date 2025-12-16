@@ -20,6 +20,7 @@ const getApiBaseUrl = () => {
   // 프로덕션 환경 (Vercel 배포)
   // Vercel Serverless Function 프록시 사용
   // Mixed Content 문제를 피하기 위해 프록시 필요
+  // /api/proxy.ts가 /api/proxy/* 경로를 처리
   return '/api/proxy';
 };
 
