@@ -10,10 +10,17 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // 프로덕션 환경에서는 Vercel Serverless Function 프록시 사용
-  // /api/proxy/* 경로를 통해 백엔드로 프록시하여 Mixed Content 문제 해결
-  if (import.meta.env.PROD) {
+  // 개발 환경 체크: localhost에서 실행 중이면 개발 환경
+  const isDevelopment = 
+    typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || 
+     window.location.hostname === '127.0.0.1' ||
+     window.location.hostname === '');
+  
+  // 개발 환경이 아니면 프로덕션 (Vercel 배포 환경)
+  if (!isDevelopment) {
     // Vercel Serverless Function을 통한 프록시
+    // Mixed Content 문제 해결
     return '/api/proxy';
   }
   
@@ -24,10 +31,18 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 // 디버깅: 실제 사용되는 API URL 확인
-if (import.meta.env.PROD) {
+const isDevelopment = 
+  typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || 
+   window.location.hostname === '127.0.0.1' ||
+   window.location.hostname === '');
+   
+if (!isDevelopment) {
   console.log('🔍 API Base URL:', API_BASE_URL);
-  console.log('🔍 Environment:', import.meta.env.MODE);
+  console.log('🔍 Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'unknown');
   console.log('🔍 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+  console.log('🔍 MODE:', import.meta.env.MODE);
+  console.log('🔍 PROD:', import.meta.env.PROD);
 }
 
 export const apiClient = axios.create({
@@ -40,7 +55,13 @@ export const apiClient = axios.create({
 // 요청 인터셉터: 실제 요청 URL 확인
 apiClient.interceptors.request.use(
   (config) => {
-    if (import.meta.env.PROD) {
+    const isDevelopment = 
+      typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || 
+       window.location.hostname === '127.0.0.1' ||
+       window.location.hostname === '');
+       
+    if (!isDevelopment) {
       const baseURL = config.baseURL || '';
       const url = config.url || '';
       const fullUrl = baseURL + url;
@@ -50,6 +71,7 @@ apiClient.interceptors.request.use(
         baseURL: baseURL,
         fullURL: fullUrl,
         params: config.params,
+        hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
       });
     }
     return config;
@@ -88,7 +110,7 @@ apiClient.interceptors.response.use(
     } else {
       // 요청 설정 중 에러 발생
       console.error('API Setup Error:', error.message);
-      return Promise.reject(error);
+    return Promise.reject(error);
     }
   }
 );
