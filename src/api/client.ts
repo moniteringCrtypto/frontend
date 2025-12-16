@@ -10,11 +10,11 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // 프로덕션 환경에서는 Vercel rewrites 사용 (상대 경로)
-  // vercel.json에서 /api/* 요청을 백엔드로 프록시하여 Mixed Content 문제 해결
+  // 프로덕션 환경에서는 Vercel Serverless Function 프록시 사용
+  // /api/proxy/* 경로를 통해 백엔드로 프록시하여 Mixed Content 문제 해결
   if (import.meta.env.PROD) {
-    // 상대 경로를 사용하면 Vercel이 서버 사이드에서 프록시 처리
-    return '/api';
+    // Vercel Serverless Function을 통한 프록시
+    return '/api/proxy';
   }
   
   // 개발 환경에서는 localhost 사용
