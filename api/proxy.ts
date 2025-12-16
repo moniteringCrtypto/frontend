@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://34.64.63.71:8080';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://34.64.63.71:80'; // nginx가 포트 80에서 실행 중
 
 export default async function handler(
   req: VercelRequest,
