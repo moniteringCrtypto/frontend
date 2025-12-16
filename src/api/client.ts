@@ -23,12 +23,39 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// 디버깅: 실제 사용되는 API URL 확인
+if (import.meta.env.PROD) {
+  console.log('🔍 API Base URL:', API_BASE_URL);
+  console.log('🔍 Environment:', import.meta.env.MODE);
+  console.log('🔍 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+}
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// 요청 인터셉터: 실제 요청 URL 확인
+apiClient.interceptors.request.use(
+  (config) => {
+    const fullUrl = config.baseURL + config.url;
+    if (import.meta.env.PROD) {
+      console.log('📤 API Request:', {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        baseURL: config.baseURL,
+        fullURL: fullUrl,
+        params: config.params,
+      });
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
