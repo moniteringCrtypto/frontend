@@ -14,49 +14,34 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  // Vercel의 동적 라우팅: [...path]로 모든 경로를 받음
-  // 방법 1: req.query.path 사용 (동적 라우팅)
+  // req.url에서 경로 추출
+  // /api/proxy/market/Binance/BTCUSDT/ticker?marketType=Spot
+  // -> market/Binance/BTCUSDT/ticker
+  const url = req.url || '';
   let pathString = '';
-  const pathParam = req.query.path;
   
-  if (pathParam) {
-    // path가 배열이면 join, 문자열이면 그대로 사용
-    pathString = Array.isArray(pathParam) ? pathParam.join('/') : pathParam;
-  }
-  
-  // 방법 2: req.url에서 직접 추출 (fallback)
-  if (!pathString && req.url) {
-    // /api/proxy/market/Binance/BTCUSDT/ticker?marketType=Spot
-    // -> market/Binance/BTCUSDT/ticker
-    const urlMatch = req.url.match(/^\/api\/proxy\/(.+?)(?:\?|$)/);
-    if (urlMatch) {
-      pathString = urlMatch[1];
-    } else if (req.url.startsWith('/')) {
-      // /market/... 형태로 오는 경우
-      pathString = req.url.split('?')[0].substring(1);
-    }
+  // /api/proxy/ 다음의 경로 추출
+  if (url.startsWith('/api/proxy/')) {
+    pathString = url.replace(/^\/api\/proxy\//, '').split('?')[0];
+  } else if (url.startsWith('/api/proxy')) {
+    // /api/proxy만 오는 경우 (뒤에 경로 없음)
+    pathString = '';
   }
   
   if (!pathString) {
     console.error('[Proxy] No path found.', {
       url: req.url,
-      query: req.query,
-      pathParam: req.query.path
+      query: req.query
     });
     return res.status(400).json({ 
       error: 'No API path specified',
-      debug: {
-        url: req.url,
-        query: req.query
-      }
+      url: req.url
     });
   }
   
-  // 쿼리 파라미터는 req.query에서 가져오기 (path 제외)
+  // 쿼리 파라미터는 req.query에서 가져오기
   const queryParams: Record<string, string> = {};
   Object.keys(req.query).forEach(key => {
-    if (key === 'path') return; // path는 제외
-    
     const value = req.query[key];
     if (typeof value === 'string') {
       queryParams[key] = value;
@@ -68,12 +53,7 @@ export default async function handler(
   
   const backendUrl = `${BACKEND_URL}/api/${pathString}${queryString ? `?${queryString}` : ''}`;
   
-  console.log(`[Proxy] ${req.method} /api/proxy/${pathString} -> ${backendUrl}`, { 
-    originalUrl: req.url,
-    pathParam: req.query.path,
-    pathString,
-    queryParams 
-  });
+  console.log(`[Proxy] ${req.method} ${req.url} -> ${backendUrl}`);
   
   try {
     const response = await fetch(backendUrl, {
