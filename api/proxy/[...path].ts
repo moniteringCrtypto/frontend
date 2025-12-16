@@ -14,44 +14,24 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  // 경로 추출: req.url에서 추출
-  // Vercel Serverless Function에서 /api/proxy.ts는 /api/proxy로 매핑됨
-  // /api/proxy/market/...로 요청이 오면 req.url은 /market/...가 됨
-  let pathString = '';
-  const url = req.url || '';
-  
-  console.log('[Proxy] Request URL:', url);
-  console.log('[Proxy] Query params:', req.query);
-  
-  // 방법 1: /api/proxy/ 다음의 경로를 추출 (rewrites 사용 시)
-  let pathMatch = url.match(/^\/api\/proxy\/(.+?)(?:\?|$)/);
-  if (pathMatch) {
-    pathString = pathMatch[1];
-  } else {
-    // 방법 2: /api/proxy 없이 직접 경로가 오는 경우 (Vercel의 기본 동작)
-    // /market/...로 시작하는 경우
-    if (url.startsWith('/')) {
-      // 첫 번째 슬래시 제거
-      pathString = url.split('?')[0].substring(1);
-    }
-    
-    // 방법 3: 쿼리 파라미터에서 path 가져오기
-    if (!pathString && req.query.path) {
-      const pathParam = req.query.path;
-      pathString = Array.isArray(pathParam) ? pathParam.join('/') : pathParam;
-    }
-  }
+  // Vercel의 동적 라우팅: [...path]로 모든 경로를 받음
+  // /api/proxy/market/Binance/BTCUSDT/ticker -> req.query.path = ['market', 'Binance', 'BTCUSDT', 'ticker']
+  const pathParam = req.query.path;
+  const pathArray = Array.isArray(pathParam) ? pathParam : pathParam ? [pathParam] : [];
+  const pathString = pathArray.join('/');
   
   if (!pathString) {
-    console.error('[Proxy] No path found in URL:', url);
-    return res.status(400).json({ error: 'No API path specified. URL: ' + url });
+    console.error('[Proxy] No path found. Query:', req.query);
+    return res.status(400).json({ 
+      error: 'No API path specified', 
+      query: req.query 
+    });
   }
   
   // 쿼리 파라미터는 req.query에서 가져오기 (path 제외)
   const queryParams: Record<string, string> = {};
   Object.keys(req.query).forEach(key => {
-    // path는 제외 (rewrites에서 전달되는 경로 파라미터)
-    if (key === 'path') return;
+    if (key === 'path') return; // path는 제외
     
     const value = req.query[key];
     if (typeof value === 'string') {
@@ -64,7 +44,10 @@ export default async function handler(
   
   const backendUrl = `${BACKEND_URL}/api/${pathString}${queryString ? `?${queryString}` : ''}`;
   
-  console.log(`[Proxy] ${req.method} ${backendUrl}`, { url: req.url, pathString });
+  console.log(`[Proxy] ${req.method} /api/proxy/${pathString} -> ${backendUrl}`, { 
+    pathArray,
+    queryParams 
+  });
   
   try {
     const response = await fetch(backendUrl, {
@@ -78,13 +61,17 @@ export default async function handler(
     
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`[Proxy] Backend error ${response.status}:`, errorText);
       return res.status(response.status).json({ error: errorText });
     }
     
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error: any) {
-    console.error('[Proxy] Error:', error);
-    res.status(500).json({ error: error.message || 'Proxy request failed' });
+    console.error('[Proxy] Fetch error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Proxy request failed',
+      backendUrl 
+    });
   }
 }
