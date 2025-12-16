@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const BACKEND_URL = 'http://136.115.167.12:8080';
+const BACKEND_URL = 'http://34.64.63.71:8080';
 
 export default async function handler(
   req: VercelRequest,
