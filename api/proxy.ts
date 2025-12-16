@@ -14,18 +14,19 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  // req.url에서 경로 추출
-  // /api/proxy/market/Binance/BTCUSDT/ticker?marketType=Spot
-  // -> market/Binance/BTCUSDT/ticker
+  // 경로 추출: rewrites에서 :path* 파라미터로 전달되거나 req.url에서 추출
   const url = req.url || '';
   let pathString = '';
   
-  // /api/proxy/ 다음의 경로 추출
-  if (url.startsWith('/api/proxy/')) {
+  // 방법 1: rewrites를 통해 전달된 path 파라미터 사용
+  if (req.query.path) {
+    const pathParam = req.query.path;
+    pathString = Array.isArray(pathParam) ? pathParam.join('/') : pathParam;
+  }
+  
+  // 방법 2: req.url에서 직접 추출 (fallback)
+  if (!pathString && url.startsWith('/api/proxy/')) {
     pathString = url.replace(/^\/api\/proxy\//, '').split('?')[0];
-  } else if (url.startsWith('/api/proxy')) {
-    // /api/proxy만 오는 경우 (뒤에 경로 없음)
-    pathString = '';
   }
   
   if (!pathString) {
@@ -35,13 +36,16 @@ export default async function handler(
     });
     return res.status(400).json({ 
       error: 'No API path specified',
-      url: req.url
+      url: req.url,
+      query: req.query
     });
   }
   
-  // 쿼리 파라미터는 req.query에서 가져오기
+  // 쿼리 파라미터는 req.query에서 가져오기 (path 제외)
   const queryParams: Record<string, string> = {};
   Object.keys(req.query).forEach(key => {
+    if (key === 'path') return; // rewrites에서 전달된 path는 제외
+    
     const value = req.query[key];
     if (typeof value === 'string') {
       queryParams[key] = value;
