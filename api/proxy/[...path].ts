@@ -16,19 +16,34 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  // URL에서 경로 추출: /api/proxy/market/... -> market/...
-  const urlPath = req.url?.replace('/api/proxy', '').replace(/^\//, '') || '';
+  // Vercel의 [...path]는 배열로 전달됨
+  const pathArray = req.query.path as string[] | string | undefined;
+  const pathString = Array.isArray(pathArray) 
+    ? pathArray.join('/') 
+    : pathArray || '';
   
-  // 쿼리 파라미터 가져오기
-  const queryString = new URLSearchParams(req.query as Record<string, string>).toString();
+  // 쿼리 파라미터에서 path 제외하고 나머지만 사용
+  const queryParams: Record<string, string> = {};
+  Object.keys(req.query).forEach(key => {
+    if (key !== 'path') {
+      const value = req.query[key];
+      if (typeof value === 'string') {
+        queryParams[key] = value;
+      } else if (Array.isArray(value)) {
+        queryParams[key] = value[0];
+      }
+    }
+  });
+  const queryString = new URLSearchParams(queryParams).toString();
   
-  const backendUrl = `${BACKEND_URL}/api/${urlPath}${queryString ? `?${queryString}` : ''}`;
+  const backendUrl = `${BACKEND_URL}/api/${pathString}${queryString ? `?${queryString}` : ''}`;
   
   console.log(`[Proxy] ${req.method} ${backendUrl}`, {
-    originalUrl: req.url,
-    urlPath,
-    queryString,
-    backendUrl
+    pathArray,
+    pathString,
+    queryParams,
+    backendUrl,
+    originalUrl: req.url
   });
   
   try {
@@ -54,4 +69,3 @@ export default async function handler(
     res.status(500).json({ error: error.message || 'Proxy request failed' });
   }
 }
-
