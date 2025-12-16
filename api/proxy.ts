@@ -14,18 +14,37 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  // 경로 추출: rewrites에서 path 파라미터로 전달되거나 req.url에서 추출
+  // 경로 추출: req.url에서 추출
+  // Vercel Serverless Function에서 /api/proxy.ts는 /api/proxy로 매핑됨
+  // /api/proxy/market/...로 요청이 오면 req.url은 /market/...가 됨
   let pathString = '';
+  const url = req.url || '';
   
-  // rewrites를 통해 전달된 경우
-  if (req.query.path) {
-    const pathParam = req.query.path;
-    pathString = Array.isArray(pathParam) ? pathParam.join('/') : pathParam;
+  console.log('[Proxy] Request URL:', url);
+  console.log('[Proxy] Query params:', req.query);
+  
+  // 방법 1: /api/proxy/ 다음의 경로를 추출 (rewrites 사용 시)
+  let pathMatch = url.match(/^\/api\/proxy\/(.+?)(?:\?|$)/);
+  if (pathMatch) {
+    pathString = pathMatch[1];
   } else {
-    // 직접 호출된 경우 req.url에서 추출
-    const url = req.url || '';
-    const pathMatch = url.match(/^\/api\/proxy\/(.+?)(?:\?|$)/);
-    pathString = pathMatch ? pathMatch[1] : '';
+    // 방법 2: /api/proxy 없이 직접 경로가 오는 경우 (Vercel의 기본 동작)
+    // /market/...로 시작하는 경우
+    if (url.startsWith('/')) {
+      // 첫 번째 슬래시 제거
+      pathString = url.split('?')[0].substring(1);
+    }
+    
+    // 방법 3: 쿼리 파라미터에서 path 가져오기
+    if (!pathString && req.query.path) {
+      const pathParam = req.query.path;
+      pathString = Array.isArray(pathParam) ? pathParam.join('/') : pathParam;
+    }
+  }
+  
+  if (!pathString) {
+    console.error('[Proxy] No path found in URL:', url);
+    return res.status(400).json({ error: 'No API path specified. URL: ' + url });
   }
   
   // 쿼리 파라미터는 req.query에서 가져오기 (path 제외)

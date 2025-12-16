@@ -12,16 +12,19 @@ const getApiBaseUrl = () => {
      window.location.hostname === '127.0.0.1' ||
      window.location.hostname === '');
   
-  // 개발 환경이면 localhost 사용
-  if (isDevelopment) {
-    return 'http://localhost:5034/api';
-  }
-  
-  // 프로덕션 환경 (Vercel 배포)
-  // Vercel Serverless Function 프록시 사용
+  // 개발 환경과 프로덕션 환경 모두 프록시 사용
+  // - 로컬 개발: Vite 프록시가 /api/proxy를 원격 백엔드로 전달
+  // - 프로덕션: Vercel Serverless Function 프록시 사용
   // Mixed Content 문제를 피하기 위해 프록시 필요
   // /api/proxy.ts가 /api/proxy/* 경로를 처리
+  // 경로는 URL에 포함되어 전달됨 (예: /api/proxy/market/Binance/BTCUSDT/ticker)
   return '/api/proxy';
+  
+  // 로컬 백엔드를 사용하고 싶은 경우 아래 주석을 해제하고 위의 return을 주석 처리
+  // if (isDevelopment) {
+  //   return 'http://localhost:5034/api';
+  // }
+  // return '/api/proxy';
 };
 
 const API_BASE_URL = getApiBaseUrl();
