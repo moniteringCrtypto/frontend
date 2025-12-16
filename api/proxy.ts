@@ -16,22 +16,19 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  // Vercel의 [...path]는 배열로 전달됨
-  const pathArray = req.query.path as string[] | string | undefined;
-  const pathString = Array.isArray(pathArray) 
-    ? pathArray.join('/') 
-    : pathArray || '';
+  // req.url에서 경로 추출: /api/proxy/market/... -> market/...
+  const url = req.url || '';
+  const pathMatch = url.match(/^\/api\/proxy\/(.+)$/);
+  const pathString = pathMatch ? pathMatch[1] : '';
   
-  // 쿼리 파라미터에서 path 제외하고 나머지만 사용
+  // 쿼리 파라미터 추출
   const queryParams: Record<string, string> = {};
   Object.keys(req.query).forEach(key => {
-    if (key !== 'path') {
-      const value = req.query[key];
-      if (typeof value === 'string') {
-        queryParams[key] = value;
-      } else if (Array.isArray(value)) {
-        queryParams[key] = value[0];
-      }
+    const value = req.query[key];
+    if (typeof value === 'string') {
+      queryParams[key] = value;
+    } else if (Array.isArray(value)) {
+      queryParams[key] = value[0];
     }
   });
   const queryString = new URLSearchParams(queryParams).toString();
@@ -39,11 +36,10 @@ export default async function handler(
   const backendUrl = `${BACKEND_URL}/api/${pathString}${queryString ? `?${queryString}` : ''}`;
   
   console.log(`[Proxy] ${req.method} ${backendUrl}`, {
-    pathArray,
+    originalUrl: req.url,
     pathString,
     queryParams,
-    backendUrl,
-    originalUrl: req.url
+    backendUrl
   });
   
   try {
