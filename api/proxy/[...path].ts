@@ -15,17 +15,34 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  const { path } = req.query;
-  const pathString = Array.isArray(path) ? path.join('/') : path || '';
+  // Vercel의 [...path]는 배열로 전달됨
+  const pathArray = req.query.path as string[] | string | undefined;
+  const pathString = Array.isArray(pathArray) 
+    ? pathArray.join('/') 
+    : pathArray || '';
   
   // 쿼리 파라미터에서 path 제외하고 나머지만 사용
-  const queryParams = { ...req.query };
-  delete queryParams.path;
-  const queryString = new URLSearchParams(queryParams as Record<string, string>).toString();
+  const queryParams: Record<string, string> = {};
+  Object.keys(req.query).forEach(key => {
+    if (key !== 'path') {
+      const value = req.query[key];
+      if (typeof value === 'string') {
+        queryParams[key] = value;
+      } else if (Array.isArray(value)) {
+        queryParams[key] = value[0];
+      }
+    }
+  });
+  const queryString = new URLSearchParams(queryParams).toString();
   
   const url = `${BACKEND_URL}/api/${pathString}${queryString ? `?${queryString}` : ''}`;
   
-  console.log(`[Proxy] ${req.method} ${url}`);
+  console.log(`[Proxy] ${req.method} ${url}`, {
+    pathArray,
+    pathString,
+    queryParams,
+    fullUrl: url
+  });
   
   try {
     const response = await fetch(url, {
