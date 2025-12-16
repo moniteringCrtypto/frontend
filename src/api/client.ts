@@ -10,11 +10,17 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // 프로덕션 환경에서는 Vercel rewrites 사용 (상대 경로)
-  // vercel.json에서 /api/* 요청을 백엔드로 프록시
+  // 프로덕션 환경에서는 직접 백엔드 URL 사용
+  // Vercel rewrites가 작동하지 않을 수 있으므로 직접 URL 사용
   if (import.meta.env.PROD) {
-    // 상대 경로를 사용하면 Mixed Content 문제 해결
-    return '/api';
+    // 직접 백엔드 URL 사용 (Mixed Content 경고는 브라우저에서 허용 가능)
+    const backendUrl = 'http://136.115.167.12:8080/api';
+    console.warn(
+      '⚠️ VITE_API_BASE_URL 환경 변수가 설정되지 않았습니다.\n' +
+      `직접 백엔드 URL을 사용합니다: ${backendUrl}\n` +
+      'Vercel 환경 변수에서 VITE_API_BASE_URL을 설정하는 것을 권장합니다.'
+    );
+    return backendUrl;
   }
   
   // 개발 환경에서는 localhost 사용
