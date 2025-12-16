@@ -10,16 +10,16 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // 프로덕션 환경이고 환경 변수가 없으면 경고
+  // 프로덕션 환경에서는 기본 백엔드 URL 사용
   if (import.meta.env.PROD) {
-    console.error(
-      '⚠️ VITE_API_BASE_URL 환경 변수가 설정되지 않았습니다!\n' +
-      '배포 환경에서는 반드시 환경 변수를 설정해야 합니다.\n' +
-      '예: VITE_API_BASE_URL=https://your-backend-api.com/api'
+    // Vercel 환경 변수가 설정되지 않은 경우 기본값 사용
+    const defaultBackendUrl = 'http://136.115.167.12:8080/api';
+    console.warn(
+      '⚠️ VITE_API_BASE_URL 환경 변수가 설정되지 않았습니다.\n' +
+      `기본 백엔드 URL을 사용합니다: ${defaultBackendUrl}\n` +
+      'Vercel 환경 변수에서 VITE_API_BASE_URL을 설정하는 것을 권장합니다.'
     );
-    // 프로덕션에서는 상대 경로를 사용하거나, 실제 백엔드 URL을 하드코딩할 수 있습니다
-    // 여기서는 빈 문자열을 반환하여 명확한 에러를 발생시킵니다
-    return '';
+    return defaultBackendUrl;
   }
   
   // 개발 환경에서는 localhost 사용
@@ -27,14 +27,6 @@ const getApiBaseUrl = () => {
 };
 
 const API_BASE_URL = getApiBaseUrl();
-
-if (!API_BASE_URL && import.meta.env.PROD) {
-  console.error(
-    '❌ API_BASE_URL이 설정되지 않았습니다!\n' +
-    '배포 환경에서 환경 변수 VITE_API_BASE_URL을 설정해주세요.\n' +
-    '빌드 시 환경 변수를 설정하거나, 배포 플랫폼의 환경 변수 설정을 확인하세요.'
-  );
-}
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
