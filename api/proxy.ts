@@ -15,37 +15,23 @@ export default async function handler(
     return res.status(200).end();
   }
   
-  // Vercel의 [...path]는 배열로 전달됨
-  const pathArray = req.query.path as string[] | string | undefined;
-  const pathString = Array.isArray(pathArray) 
-    ? pathArray.join('/') 
-    : pathArray || '';
+  // URL에서 경로 추출: /api/proxy/market/... -> market/...
+  const urlPath = req.url?.replace('/api/proxy', '').replace(/^\//, '') || '';
   
-  // 쿼리 파라미터에서 path 제외하고 나머지만 사용
-  const queryParams: Record<string, string> = {};
-  Object.keys(req.query).forEach(key => {
-    if (key !== 'path') {
-      const value = req.query[key];
-      if (typeof value === 'string') {
-        queryParams[key] = value;
-      } else if (Array.isArray(value)) {
-        queryParams[key] = value[0];
-      }
-    }
-  });
-  const queryString = new URLSearchParams(queryParams).toString();
+  // 쿼리 파라미터 가져오기
+  const queryString = new URLSearchParams(req.query as Record<string, string>).toString();
   
-  const url = `${BACKEND_URL}/api/${pathString}${queryString ? `?${queryString}` : ''}`;
+  const backendUrl = `${BACKEND_URL}/api/${urlPath}${queryString ? `?${queryString}` : ''}`;
   
-  console.log(`[Proxy] ${req.method} ${url}`, {
-    pathArray,
-    pathString,
-    queryParams,
-    fullUrl: url
+  console.log(`[Proxy] ${req.method} ${backendUrl}`, {
+    originalUrl: req.url,
+    urlPath,
+    queryString,
+    backendUrl
   });
   
   try {
-    const response = await fetch(url, {
+    const response = await fetch(backendUrl, {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
@@ -54,8 +40,13 @@ export default async function handler(
       body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
     });
     
-    const data = await response.json();
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Proxy] Backend error: ${response.status}`, errorText);
+      return res.status(response.status).json({ error: errorText });
+    }
     
+    const data = await response.json();
     res.status(response.status).json(data);
   } catch (error: any) {
     console.error('[Proxy] Error:', error);
