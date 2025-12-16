@@ -5,13 +5,6 @@ import axios from 'axios';
 // 로컬 개발: http://localhost:5034/api
 // 배포 환경: 실제 백엔드 API URL (예: https://your-backend-api.com/api)
 const getApiBaseUrl = () => {
-  // 개발 환경 체크: localhost에서 실행 중이면 개발 환경
-  const isDevelopment = 
-    typeof window !== 'undefined' && 
-    (window.location.hostname === 'localhost' || 
-     window.location.hostname === '127.0.0.1' ||
-     window.location.hostname === '');
-  
   // 개발 환경과 프로덕션 환경 모두 프록시 사용
   // - 로컬 개발: Vite 프록시가 /api/proxy를 원격 백엔드로 전달
   // - 프로덕션: Vercel Serverless Function 프록시 사용
@@ -21,6 +14,11 @@ const getApiBaseUrl = () => {
   return '/api/proxy';
   
   // 로컬 백엔드를 사용하고 싶은 경우 아래 주석을 해제하고 위의 return을 주석 처리
+  // const isDevelopment = 
+  //   typeof window !== 'undefined' && 
+  //   (window.location.hostname === 'localhost' || 
+  //    window.location.hostname === '127.0.0.1' ||
+  //    window.location.hostname === '');
   // if (isDevelopment) {
   //   return 'http://localhost:5034/api';
   // }
