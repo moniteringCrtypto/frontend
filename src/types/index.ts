@@ -64,3 +64,31 @@ export interface HistoricalParams {
   from?: Date;
   to?: Date;
 }
+
+// TradingView 관련 타입
+export interface TradingViewSymbol {
+  symbol: string;
+  tradingViewFormat: string;
+  exchange: Exchange;
+  marketType: MarketType;
+  displayName: string;
+  baseCurrency: string;
+  quoteCurrency: string;
+}
+
+export interface SymbolInfo {
+  exchange: Exchange;
+  symbol: string;
+  marketType: MarketType;
+  baseCurrency: string;
+  quoteCurrency: string;
+  displayName: string;
+  isActive: boolean;
+}
+
+export interface SymbolSearchResult {
+  results: TradingViewSymbol[];
+  totalCount: number;
+  pageSize: number;
+  page: number;
+}

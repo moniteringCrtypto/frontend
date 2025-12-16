@@ -1,3 +1,42 @@
+# Quaternion Frontend
+
+암호화폐 거래소(Binance, Bybit, Upbit)의 실시간 매물대를 시각화하는 대시보드입니다.
+
+## 개발 환경 실행
+
+백엔드가 로컬에서 실행 중이어야 합니다 (기본 포트: 5034).
+
+```bash
+# 의존성 설치
+npm install
+
+# 개발 서버 실행 (http://localhost:5173)
+npm run dev
+```
+
+## 빌드
+
+```bash
+# 프로덕션 빌드
+npm run build
+
+# 빌드 결과 미리보기
+npm run preview
+```
+
+## 환경 변수
+
+- `VITE_API_BASE_URL`: 백엔드 API URL (기본값: `http://localhost:5034/api`)
+  - 로컬 개발: 환경 변수 설정 불필요
+  - 배포 환경: 백엔드 API URL을 반드시 설정해야 함
+
+## 주의사항
+
+백엔드가 로컬에만 있는 경우, 프론트엔드도 로컬에서 실행해야 합니다.
+배포된 프론트엔드에서 로컬 백엔드에 접근할 수 없습니다.
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

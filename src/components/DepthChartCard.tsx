@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { OrderBookDepthChart } from './OrderBookDepthChart';
 import { useMarketData } from '../hooks/useMarketData';
 import type { Exchange, OrderBook } from '../types';
@@ -37,29 +38,55 @@ export const DepthChartCard = ({ exchange, symbol, coinName, currency = 'USDT' }
 
   if (isLoading) {
     return (
-      <div className="chart-card">
+      <motion.div 
+        className="chart-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="depth-chart loading">
-          <div className="spinner"></div>
+          <motion.div 
+            className="spinner"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
           <p>Loading depth chart...</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <div className="chart-card">
-        <div className="depth-chart error">
+      <motion.div 
+        className="chart-card"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div 
+          className="depth-chart error"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
           <h3>{coinName} - {exchange}</h3>
           <p>Error loading order book</p>
           <small>{error.message || 'Unknown error occurred'}</small>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="chart-card">
+    <motion.div 
+      className="chart-card"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      whileHover={{ y: -5 }}
+      style={{ transition: 'box-shadow 0.3s ease' }}
+    >
       <OrderBookDepthChart
         orderBook={history.current}
         title={`${coinName} - ${exchange}`}
@@ -68,6 +95,6 @@ export const DepthChartCard = ({ exchange, symbol, coinName, currency = 'USDT' }
         symbol={symbol}
         currency={currency}
       />
-    </div>
+    </motion.div>
   );
 };

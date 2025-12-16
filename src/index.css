@@ -15,28 +15,53 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Claude-style color palette */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f3f5;
+  --bg-hover: #f8f9fa;
+  --border-color: #e9ecef;
+  --border-hover: #d0d7de;
+  --text-primary: #1f2328;
+  --text-secondary: #656d76;
+  --text-tertiary: #8b949e;
+  --accent-primary: #0969da;
+  --accent-hover: #0860ca;
+  --accent-light: #e7f3ff;
+  --success: #1a7f37;
+  --success-light: #dafbe1;
+  --danger: #cf222e;
+  --danger-light: #ffebe9;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #f5f7fa;
-  color: #2d3748;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  position: relative;
 }
 
 #root {
   min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 a {
   font-weight: 500;
-  color: #667eea;
+  color: var(--accent-primary);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: #5568d3;
+  color: var(--accent-hover);
 }
 
 button {
@@ -50,14 +75,14 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--bg-tertiary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--border-color);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--border-hover);
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { CombinedOrderBookDepthChart } from './CombinedOrderBookDepthChart';
 import { useMarketData } from '../hooks/useMarketData';
 import type { Exchange, OrderBook } from '../types';
@@ -64,24 +65,43 @@ export const CombinedOrderBookDepthCard = ({
 
   if (isLoading) {
     return (
-      <div className="chart-card combined-card">
+      <motion.div 
+        className="chart-card combined-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="depth-chart loading">
-          <div className="spinner"></div>
+          <motion.div 
+            className="spinner"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
           <p>Loading combined depth chart...</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <div className="chart-card combined-card">
-        <div className="depth-chart error">
+      <motion.div 
+        className="chart-card combined-card"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div 
+          className="depth-chart error"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
           <h3>{coinName} - 전체 매물대</h3>
           <p>Error loading combined order book</p>
           <small>{error.message || 'Unknown error occurred'}</small>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -90,14 +110,21 @@ export const CombinedOrderBookDepthCard = ({
   }
 
   return (
-    <div className="chart-card combined-card">
+    <motion.div 
+      className="chart-card combined-card"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      whileHover={{ y: -5 }}
+      style={{ transition: 'box-shadow 0.3s ease' }}
+    >
       <CombinedOrderBookDepthChart
         orderBooksData={orderBooksData}
         title={`${coinName} - 전체 매물대 (${exchanges.join(', ')})`}
         currency={currency}
         symbol={symbol}
       />
-    </div>
+    </motion.div>
   );
 };
 
