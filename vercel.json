@@ -1,15 +1,4 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "functions": {
-    "api/proxy/[...path].ts": {
-      "runtime": "@vercel/node"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/proxy/(.*)",
-      "destination": "/api/proxy/$1"
-    }
-  ]
+  "outputDirectory": "dist"
 }
