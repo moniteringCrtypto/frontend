@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const BACKEND_URL = 'http://34.64.63.71:8080';
+// 환경 변수에서 백엔드 URL 가져오기
+const BACKEND_URL = process.env.BACKEND_URL || 'http://34.64.63.71:8080';
 
 export default async function handler(
   req: VercelRequest,
