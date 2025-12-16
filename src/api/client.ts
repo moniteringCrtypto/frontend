@@ -17,10 +17,10 @@ const getApiBaseUrl = () => {
     return 'http://localhost:5034/api';
   }
   
-  // 프로덕션 환경 (Vercel 배포)
-  // Vercel Serverless Function 프록시 사용
-  // /api/proxy.ts가 /api/proxy/* 경로를 처리
-  return '/api/proxy';
+  // 프로덕션 환경: 백엔드 URL 직접 사용
+  // 환경 변수에서 가져오거나 기본값 사용
+  const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://34.64.63.71:8080/api';
+  return backendUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
